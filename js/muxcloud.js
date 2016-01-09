@@ -24,6 +24,7 @@ var Muxcloud = function(){
 
     bindEvents : function(){
       $('#connect_button').on('click', this.connect);
+      $('#stream').delegate('click .play', this.onPlayClick);
     },
 
     connect : function(){
@@ -62,12 +63,12 @@ var Muxcloud = function(){
     trackTemplate : function(track){
       return `<div class="track" data-track-id="${track.id}">
         <div class="cover">
-          <a href="${track.permalink_url}" target="_blank"><span class="i-zoom"></span>
+          <a href="${track.permalink_url}" target="_blank"><span class="icon-zoom"></span>
             <img width="50" height="50" src="${track.artwork_url}" class="artwork" crossorigin="anonymous"/></a>
           </a>
           <div class="playpause">
-            <a href="#" class="play" title="Play"><span class="i-play"></span></a>
-            <a href="#" class="play" title="Pause"><span class="i-pause"></span></a>
+            <a href="#" class="play" title="Play"><span class="icon-play2"></span></a>
+            <a href="#" class="pause" title="Pause"><span class="icon-pause2"></span></a>
           </div>
         </div>
 
@@ -75,10 +76,14 @@ var Muxcloud = function(){
           <span class="name">${track.title}</span>
         </div>
         <div class="artist">
-          <span class="i-avatar"></span>${track.user.username}
+          <span class="icon-avatar"></span>${track.user.username}
         </div>
 
-        <span class="duration">${Utils.msToTime(track.duration)}</span>
+        <div class="progress">
+          <div class="progress_bar">
+          <span class="timestamp">0:00</span>
+          <span class="duration">${Utils.msToTime(track.duration)}</span>
+        </div>
       </div>`;
     },
 
@@ -109,7 +114,12 @@ var Muxcloud = function(){
       // }
 
       $(canvas).removeClass('unrendered');
-    }
+    },
+
+    onPlayClick : function(event){
+      debugger;
+      var track = '';
+    },
   };
 };
 

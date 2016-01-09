@@ -1,6 +1,11 @@
+*{
+  box-sizing: border-box;
+}
+
 /* SM2 muxtape core*/
 body {
- font:75% normal verdana,arial,tahoma,"sans serif";
+ font-family: "Helvetica Neue",georgia,"times new roman","Arial Rounded MT Bold",helvetica,verdana,tahoma,arial,"sans serif";
+ font-weight: 300;
  background: #eee;
  margin: 0;
  padding: 0;
@@ -107,7 +112,7 @@ header{
 /* track */
 .track{
   height: 100px;
-  padding-left: 110px;
+  padding: 10px 10px 10px 110px;
   clear: both;
   margin-bottom: 20px;
   background-color: rgba(255,255,255,0.1);
@@ -117,6 +122,15 @@ header{
 
 .track.playing{
   background-color: rgba(255,255,255,0.3);
+}
+
+.track .title{
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.track .artist{
+  font-weight: 18px;
 }
 
 .track .cover{
@@ -138,16 +152,58 @@ header{
 }
 
 .track .playpause{
+  display: none;
   position: absolute;
   left: 50%;
   top: 50%;
-  font-size: 50px;
   margin-top: -25px;
   margin-left: -25px;
+}
+
+.track:hover .playpause, .track.playing .playpause{
+  display: block;
+}
+
+a.play, a.pause{
+  font-size: 50px;
+  color: #fff;
+  transform: scale(1.0);
+  transition: transform 0.2s ease-in-out, color 0.2s linear;
+}
+
+a.play:hover,
+a.pause:hover{
+  color: #ccc;
+  transform: scale(1.2);
 }
 
 .track .pause{ display: none; }
 .track.playing .pause{ display: initial; }
 .track.playing .play{ display: none; }
 
-.track 
+.track  .duration{
+  position: absolute;
+  right: 5px;
+
+}
+
+.track .progress{
+  border: 1px solid rgba(0,0,0,0.25);
+  position: relative;
+  border-radius: 2px;
+  overflow: hidden;
+  height: 20px;
+  position: absolute;
+  bottom: 0;
+  top: auto;
+  width: auto;
+  right: 0;
+  left: 110px;
+}
+
+.progress_bar{
+  width: 25%;
+  height: 20px;
+  transition: width 1s linear;
+  background: rgba(0,0,0,0.40);
+}
