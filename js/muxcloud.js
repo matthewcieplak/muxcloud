@@ -61,12 +61,22 @@ var Muxcloud = function(){
 
     trackTemplate : function(track){
       return `<div class="track" data-track-id="${track.id}">
-        <a href="${track.permalink_url}" target="_blank"><img width="50" height="50" src="${track.artwork_url}" class="artwork" crossorigin="anonymous"/></a>
-        <a href="#" class="play">&gt;Play</span></a>
-        <a href="#" class="play">&||Pause</span></a>
+        <div class="cover">
+          <a href="${track.permalink_url}" target="_blank"><span class="i-zoom"></span>
+            <img width="50" height="50" src="${track.artwork_url}" class="artwork" crossorigin="anonymous"/></a>
+          </a>
+          <div class="playpause">
+            <a href="#" class="play" title="Play"><span class="i-play"></span></a>
+            <a href="#" class="play" title="Pause"><span class="i-pause"></span></a>
+          </div>
+        </div>
 
-        <span class="name">${track.title}</div><br />
-        by <span class="artist">${track.user.username}</span>
+        <div class="title">
+          <span class="name">${track.title}</span>
+        </div>
+        <div class="artist">
+          <span class="i-avatar"></span>${track.user.username}
+        </div>
 
         <span class="duration">${Utils.msToTime(track.duration)}</span>
       </div>`;
