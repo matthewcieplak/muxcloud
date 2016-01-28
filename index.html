@@ -13,12 +13,13 @@
   <script src="js/muxcloud.jsx" type="text/jsx"></script>
 
   <!-- soundManager API -->
-  <script src="js/soundmanager2.js"></script>
+  <script src="js/soundmanager2-nodebug.js"></script>
   <script>
   soundManager.setup({
     flashVersion: 9,
     preferFlash: false, // for visualization effects
-    html5PollingInterval: 50,
+    html5PollingInterval: 250,
+    flashPollingInterval: 250,
     wmode: 'transparent', // transparent SWF, if possible
     url: 'swf/'
   });
@@ -31,7 +32,9 @@
 <div id="content">
 <div>
   <header>
-    <h1><span class="icon-headphones">Muxcloud</h1>
+    <h1><span class="icon-headphones"> Muxcloud</h1>
+    <p id="tagline">Soundcloud simplified</p>
+    
     <nav class="clear">
       <h2><a href="/stream" class="selected">Stream</a></h2>
       <h2><a href="/likes">Likes</a></h2>
@@ -49,7 +52,11 @@
 </div>
 
 <script type="text/jsx">
-  React.render(<ConnectComponent />, document.getElementById('connect'));
+  App = {};
+  App.connect = React.render(<ConnectComponent />, document.getElementById('connect'));
+  if (SC.accessToken()) {
+    App.connect.loadStream();
+  }
 </script>
 </body>
 </html>
