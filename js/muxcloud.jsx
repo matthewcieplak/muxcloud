@@ -82,11 +82,10 @@ var StreamComponent = React.createClass({
 
   componentDidMount : function(){
     var img = $('#stream img:first')[0];
-    if (!this.renderGradient({target : img})) {
-      img.onload = this.renderGradient;
-    }
+    this.renderGradient({target : img})
   },
 
+  // takes an onload event from image, but can be spoofed if already loaded
   renderGradient : function(event){
     var image = event.target;
     var canvas = $('#background_gradient')[0];
@@ -94,7 +93,10 @@ var StreamComponent = React.createClass({
     var grd = ctx.createLinearGradient(0.000, 40, 100, 20);
     var palette = colorThief.getPalette(image, 3);
     
-    if (!palette) return false;
+    if (!palette) {
+      image.onload = this.renderGradient;
+      return false;
+    }
     for(var i = 0; i < palette.length; i++ ){
       var color = palette[i];
       var offset = (i / 3.0);
@@ -133,16 +135,27 @@ var StreamComponent = React.createClass({
       //update gradient
       var playingTrack = this.refs['track'+trackId]; 
       var img = $(playingTrack.getDOMNode()).find('img')[0];
-      this.renderGradient(img);
+      this.renderGradient({ target : img });
 
       //this.render
     }
   },
 
   onFinish : function(trackId){
-    debugger;
-    this.refs
-    console.log('onFinish', trackId);
+    var track = this.refs['track'+trackId];
+    var nextDiv = $(track.getDOMNode()).next();
+    if (nextDiv.length > 0) {
+      var nextTrackId = nextDiv.data('track-id')
+      var nextTrack = this.refs['track'+nextTrackId];
+      if (nextTrack) nextTrack.onPlayClick();
+    } else {
+      // load more tracks then play
+      // this.loadMore();
+      //
+      // if (newTracks.length > 0) {
+      //   this.onFinish(trackId)
+      // }
+    }
   },
 });
 
@@ -160,6 +173,7 @@ var TrackComponent = React.createClass({
     return {
       playing: this.props.playing, 
       position: 0,
+      finished : false
     };
   },
 
@@ -214,6 +228,9 @@ var TrackComponent = React.createClass({
     if (!this.smSound) {
       this.createSound();
       this.smSound.play();
+    } else if (this.state.finished) {
+      //this.smSound.play();
+      this.smSound.play();
     } else {
       this.smSound.resume();
     }
@@ -237,7 +254,7 @@ var TrackComponent = React.createClass({
   },
 
   onFinish : function(){
-    this.setState({ playing : false });
+    this.setState({ playing : false, finished : true, position : 0 });
     this.render();
 
     //call into <Stream> parent
