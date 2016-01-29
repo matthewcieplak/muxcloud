@@ -215,16 +215,15 @@ a.pause:hover{
 .track  .duration{
   position: absolute;
   right: 10px;
-  top: 0;
-
+  top: 2px;
 }
 
 .track .progress{
-  border: 1px solid rgba(0,0,0,0.25);
+  border-top: 1px solid rgba(0,0,0,0.12);
   position: relative;
   border-radius: 2px;
   overflow: hidden;
-  height: 22px;
+  height: 25px;
   position: absolute;
   bottom: 0;
   top: auto;
@@ -232,11 +231,20 @@ a.pause:hover{
   right: 0;
   left: 100px;
   text-indent: 10px;
+  background: rgba(255,255,255,0.3);
+  padding: 3px 0;
+}
+
+.track .progress:hover{
+  background: rgba(255,255,255,0.6);
+  cursor: pointer;
 }
 
 .progress_bar{
   width: 25%;
-  height: 20px;
+  height: 30px;
   transition: width 0.25s linear;
   background: rgba(0,0,0,0.40);
+  margin-top: -3px;
+  padding-top: 3px;
 }
