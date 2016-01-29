@@ -1,6 +1,20 @@
+var sc_config;
+if (window. location.hostname == 'muxcloud.matthewcieplak.com') { //production
+  sc_config = {
+    client_id : 'bbf0fa468c641edba19d061ba901d60b',
+    redirect_uri:  'http://muxcloud.matthewcieplak.com/callback.html'
+  }
+} else {
+  sc_config = {
+    client_id : '504016c0974cb1ea877d69bf52256027',
+    redirect_uri : 'http://muxcloud.com/~matthew/muxcloud/callback.html'
+  }
+}
+
+
 SC.initialize({
-  client_id: 'bbf0fa468c641edba19d061ba901d60b',
-  redirect_uri: 'http://muxcloud.com/~matthew/muxcloud/callback.html',
+  client_id: sc_config.client_id,
+  redirect_uri:  sc_config.redirect_uri,
   //oauth_token: localStorage.getItem('sc_oauth_token') //v3.0.0?
   access_token: localStorage.getItem('sc_oauth_token')
 });
@@ -209,8 +223,8 @@ var TrackComponent = React.createClass({
 
       <div className="progress" onClick={this.onSeek}>
         <div className="progress_bar" style={progressStyle}>
-          <span className="timestamp">{Utils.msToTime(this.state.position)}</span>
           <span className="duration">{Utils.msToTime(this.props.duration)}</span>
+          <span className="timestamp">{Utils.msToTime(this.state.position)}</span>
         </div>
       </div>
     </div>
