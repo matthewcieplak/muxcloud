@@ -122,6 +122,15 @@ header{
   clear: both;
 }
 
+#connect{
+  text-align: center;
+  margin: 0 auto;
+  width: 300px;
+  padding: 25px;
+  background: #eee;
+  border-radius: 10px;
+}
+
 
 
 #background_gradient{

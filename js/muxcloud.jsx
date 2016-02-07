@@ -48,7 +48,7 @@ var ConnectComponent = React.createClass({
   },
 
   renderStream : function(json){
-    var stream = <StreamComponent json={json} />
+    var stream = <StreamComponent json={json}/>
     React.render(stream, document.getElementById('stream'));
   }
 });
@@ -68,8 +68,10 @@ var ConnectComponent = React.createClass({
 var StreamComponent = React.createClass({
   getInitialState : function(){
     return { 
+      loading        : false,
       playingTrackId : null,
-      tracks         : this.filterTracks(this.props.json)
+      tracks         : this.filterTracks(this.props.json),
+      next_href      : this.props.json.next_href
     };
   },
 
@@ -81,6 +83,9 @@ var StreamComponent = React.createClass({
           <TrackComponent ref={'track'+item.id} className="track" playing={playing} key={i} {...item} onTrackPlay={this.onTrackPlay} onFinish={this.onFinish} />
         );
       }, this)}
+      <div>
+        <a href="#" onClick={this.loadMore}>Load More</a>
+      </div>
     </div>
   },
 
@@ -97,6 +102,7 @@ var StreamComponent = React.createClass({
   componentDidMount : function(){
     var img = $('#stream img:first')[0];
     this.renderGradient({target : img})
+    this.bindScroll();
   },
 
   // takes an onload event from image, but can be spoofed if already loaded
@@ -171,6 +177,31 @@ var StreamComponent = React.createClass({
       // }
     }
   },
+
+  bindScroll : function(){
+    var self = this;
+    window.onScroll = function(){
+      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight && ! this.state.loading) {
+        // you're at the bottom of the page
+        this.loadMore();
+      }
+    }
+  },
+
+  loadMore : function(event){
+    this.setState({ loading : true });
+    SC.get(this.state.next_href, this.loadTracks);
+    return false;
+  },
+
+  loadTracks : function(json){
+    this.setState({
+      next_href : json.next_href,
+      loading   : false,
+      tracks    : this.state.tracks.concat(this.filterTracks(json))
+    });
+  }
+
 });
 
 
