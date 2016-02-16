@@ -180,12 +180,12 @@ var StreamComponent = React.createClass({
 
   bindScroll : function(){
     var self = this;
-    window.onScroll = function(){
-      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight && ! this.state.loading) {
+    $(window).bind('scroll', function () {
+      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight && !this.state.loading) {
         // you're at the bottom of the page
         this.loadMore();
       }
-    }
+    }.bind(this));
   },
 
   loadMore : function(event){
@@ -231,7 +231,7 @@ var TrackComponent = React.createClass({
     return <div className={this.props.className + ' ' + (this.state.playing ? 'playing' : '')} data-track-id={this.props.id}>
       <div className="cover">
         <span className="icon-zoom"></span>
-        <img width="50" height="50" src={this.props.artwork_url} className="artwork" crossOrigin="anonymous"/>
+        <img width="50" height="50" src={this.props.artwork_url ? this.props.artwork_url : this.props.user.avatar_url} className="artwork" crossOrigin="anonymous"/>
         <div className="playpause">
           <a href="#" onClick={this.onPlayClick} className="play" title="Play"><span className="icon-play2"></span></a>
           <a href="#" onClick={this.onPauseClick} className="pause" title="Pause"><span className="icon-pause2"></span></a>
