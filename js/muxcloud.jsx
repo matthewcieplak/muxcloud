@@ -78,10 +78,14 @@ var StreamComponent = React.createClass({
   render : function(){
     return <div>
       {this.state.tracks.map(function(item, i){
-        var playing = (item.id == this.state.playingTrackId);
-        return (
-          <TrackComponent ref={'track'+item.id} className="track" playing={playing} key={i} {...item} onTrackPlay={this.onTrackPlay} onFinish={this.onFinish} />
-        );
+        if (item) {
+          var playing = (item.id == this.state.playingTrackId);
+          return (
+            <TrackComponent ref={'track'+item.id} className="track" playing={playing} key={i} {...item} onTrackPlay={this.onTrackPlay} onFinish={this.onFinish} />
+          );
+        } else {
+          return false;
+        }
       }, this)}
       <div>
         <a href="#" onClick={this.loadMore}>Load More</a>
