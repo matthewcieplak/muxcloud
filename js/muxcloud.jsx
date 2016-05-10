@@ -29,7 +29,10 @@ colorThief = new ColorThief();
 
 var ConnectComponent = React.createClass({
   render : function(){
-    return <a href="#" id="connect_button" onClick={this.connect}><img src="img/btn-connect-l.png" /></a>
+    return <div>
+        <p>Muxcloud is a lightweight Soundcloud client that lets you choose what you see on your dashboard. Connect your account to start listening.</p>
+        <a href="#" id="connect_button" onClick={this.connect}><img src="img/btn-connect-l.png" /></a>
+      </div>
   },
 
   connect : function(){
@@ -66,12 +69,22 @@ var ConnectComponent = React.createClass({
   }
 });
 
+
+
+
+
+
+
+//////////////////////////////////
+////////////// MENU //////////////
+//////////////////////////////////
+
 var MenuComponent = React.createClass({
   getInitialState : function(){
     return { 
       selectedTab    : 'Stream',
       configVisible  : false,
-      hideReposts    : localStorage.getItem('hideReposts') == 'true',
+      hideReposts    : localStorage.getItem('hideReposts') ? (localStorage.getItem('hideReposts') == 'true') : true, //default to true for new users
       hideMixes      : localStorage.getItem('hideMixes') == 'true',
       hideRemixes    : localStorage.getItem('hideRemixes') == 'true',
       showReload     : false
@@ -120,6 +133,8 @@ var MenuComponent = React.createClass({
   },
 
   loadStream : function(){
+    if (!SC.accessToken()) return false;
+
     this.setState({ configVisible : false }, this.saveConfig)
     //$('#connect').hide();
     $('#stream').hide();
@@ -154,8 +169,60 @@ var MenuComponent = React.createClass({
     React.render(App.stream, document.getElementById('stream'));
   },
 
+    // takes an onload event from image, but can be spoofed if already loaded
+  renderGradient : function(event, palette){
+    if (!palette) {
+      var image = event.target;
+      var palette = colorThief.getPalette(image, 3);
+      
+      if (!palette) {
+        image.onload = this.renderGradient;
+        return false;
+      }
+    }
+
+    var canvas = $('#background_gradient')[0];
+    var ctx = canvas.getContext('2d');
+    var grd = ctx.createLinearGradient(0.000, 40, 100, 20);
+    
+    for(var i = 0; i < palette.length; i++ ){
+      var color = palette[i];
+      var offset = (i / 3.0);
+      grd.addColorStop(offset, 'rgb(' + color[0] + ', ' + color[1] + ', ' + color[2] + ')');
+    }
+
+    // Fill with gradient
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, 100, 100);
+
+    //fade in canvas
+    //canvas.style.opacity = 0;
+    canvas.style.opacity = 0.6;
+    // if (oldCanvas) {
+    //   oldCanvas.style.opacity = 0.0;
+    //   setTimeout(function(){
+    //     oldCanvas.remove();
+    //   }, 2500);
+    // }
+
+    $(canvas).removeClass('unrendered');
+    return true;
+  },
+
+
   componentDidMount : function(){
     this.render();
+
+    if (!SC.accessToken()) {
+      var palette = [];
+      for (i = 0; i < 3; i++) {
+        palette[i] = [];
+        for (ii = 0; ii < 3; ii++) {
+          palette[i][ii] = Math.max(Math.min(Math.floor(Math.random() * 255), 240), 100)
+        }
+      }
+      this.renderGradient(false, palette);
+    }
   }
     
 })
@@ -230,45 +297,9 @@ var StreamComponent = React.createClass({
   componentDidMount : function(){
     var img = $('#stream img:first')[0];
     if (img) {
-      this.renderGradient({target : img})
+      App.menu.renderGradient({target : img})
     }
     this.bindScroll();
-  },
-
-  // takes an onload event from image, but can be spoofed if already loaded
-  renderGradient : function(event){
-    var image = event.target;
-    var canvas = $('#background_gradient')[0];
-    var ctx = canvas.getContext('2d');
-    var grd = ctx.createLinearGradient(0.000, 40, 100, 20);
-    var palette = colorThief.getPalette(image, 3);
-    
-    if (!palette) {
-      image.onload = this.renderGradient;
-      return false;
-    }
-    for(var i = 0; i < palette.length; i++ ){
-      var color = palette[i];
-      var offset = (i / 3.0);
-      grd.addColorStop(offset, 'rgb(' + color[0] + ', ' + color[1] + ', ' + color[2] + ')');
-    }
-
-    // Fill with gradient
-    ctx.fillStyle = grd;
-    ctx.fillRect(0, 0, 100, 100);
-
-    //fade in canvas
-    //canvas.style.opacity = 0;
-    canvas.style.opacity = 0.6;
-    // if (oldCanvas) {
-    //   oldCanvas.style.opacity = 0.0;
-    //   setTimeout(function(){
-    //     oldCanvas.remove();
-    //   }, 2500);
-    // }
-
-    $(canvas).removeClass('unrendered');
-    return true;
   },
 
   onTrackPlay : function(trackId){
@@ -285,7 +316,7 @@ var StreamComponent = React.createClass({
       //update gradient
       var playingTrack = this.refs['track'+trackId]; 
       var img = $(playingTrack.getDOMNode()).find('img')[0];
-      this.renderGradient({ target : img });
+      App.menu.renderGradient({ target : img });
 
       //this.render
     }
