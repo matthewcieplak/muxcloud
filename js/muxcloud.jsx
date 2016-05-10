@@ -213,7 +213,7 @@ var StreamComponent = React.createClass({
       if (App.menu.state.hideReposts && json.collection && trax[i].type !=  'track') { continue; }
       //if (!App.menu.state.hideReposts && json.collection && !(trax[i].type == 'track' || trax[i].type == 'track-repost')) { continue; }
       if (App.menu.state.hideMixes   && track.duration > minutes_max * 1000 * 60) { continue; }
-      if (App.menu.state.hideRemixes && track.title.match(/remix/)) { continue; }
+      if (App.menu.state.hideRemixes && track.title.match(/remix/i)) { continue; }
 
       
       if (trax[i].type == 'track-repost') {
