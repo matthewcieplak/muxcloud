@@ -45,24 +45,24 @@ var ConnectComponent = React.createClass({
     this.componentDidMount()
   },
 
-  getUser : function(){
-    SC.get('/me', this.gotUser);
-  },
+  // getUser : function(){
+  //   SC.get('/me', this.gotUser);
+  // },
 
-  gotUser : function(json){
-    if (json.kind == 'user') {
-      localStorage.setItem('sc_user_id', json.id);
-    }
-  },
+  // gotUser : function(json){
+  //   if (json.kind == 'user') {
+  //     localStorage.setItem('sc_user_id', json.id);
+  //   }
+  // },
 
   componentDidMount : function(){
     if (SC.accessToken()) {
       $('#connect').hide();
       App.menu.loadStream();
     } 
-    if (!localStorage.getItem('sc_user_id')) {
-      this.getUser();
-    }
+    // if (!localStorage.getItem('sc_user_id')) {
+    //   this.getUser();
+    // }
   }
 });
 
@@ -129,9 +129,9 @@ var MenuComponent = React.createClass({
       var url = this.state.hideReposts ? '/me/activities/tracks/affiliated' : '/me/activities';
       SC.get(url+'?limit=50', this.renderStream);
     } else if (this.state.selectedTab == 'Likes') {
-      SC.get('/users/'+localStorage.getItem('sc_user_id')+'/favorites?limit=50', this.renderStream);
+      SC.get('/me/favorites?limit=50', this.renderStream);
     } else if (this.state.selectedTab == 'Me') {
-      SC.get('/users/'+localStorage.getItem('sc_user_id')+'/tracks?limit=50', this.renderStream);
+      SC.get('/me/tracks?limit=50', this.renderStream);
     }
     return false;
   },
@@ -348,6 +348,7 @@ var TrackComponent = React.createClass({
   getInitialState: function() {
     return {
       playing: this.props.playing, 
+      user_favorite : this.props.user_favorite,
       position: 0,
       finished : false
     };
@@ -369,6 +370,9 @@ var TrackComponent = React.createClass({
       </div>
 
       <div className="title">
+        <a href="#" onClick={this.onLikeClick} className={this.state.user_favorite ? 'like-button active' : 'like-button'}>
+          <span className="icon-heart"></span>
+        </a>
         <span className={this.props.repost ? 'icon-loop' : ''}></span>
 
         <a href={this.props.permalink_url} target="_blank" className="name">
@@ -424,6 +428,20 @@ var TrackComponent = React.createClass({
   onPauseClick : function(){
     this.setState({ playing : false });
     return false;
+  },
+
+  onLikeClick : function(){
+    if (this.state.user_favorite) {
+      SC.delete('/me/favorites/'+this.props.id, function(json){ 
+        debugger; 
+      });
+    } else {
+      SC.put('/me/favorites/'+this.props.id, function(json){ 
+        debugger; 
+      });
+    }
+
+    this.setState({ user_favorite : !this.state.user_favorite });
   },
 
   whilePlaying  : function() {

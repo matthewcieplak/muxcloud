@@ -208,7 +208,26 @@ header{
   font-weight: 600;
 }
 
+.track .title .like-button{
+  float: right;
+  padding: 10px;
+  margin-left: 5px;
+  background: #fff;
+  color: #ccc;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.track .title .like-button:hover{
+  color: #333;
+}
+
+.track .title .like-button.active{
+  color: #BB2525;
+}
+
 .track .title .icon-loop{
+  padding: 10px;
   float: right; /*repost icon*/
   color: #ccc;
 }
