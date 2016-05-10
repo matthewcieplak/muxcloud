@@ -32,13 +32,14 @@
 <div id="content">
 <div>
   <header>
-    <h1><span class="icon-headphones"> Muxcloud</h1>
-    <p id="tagline">Soundcloud simplified</p>
+    <h1><span class="icon-headphones"></span> Muxcloud</h1>
+    <p id="tagline">
+      Soundcloud simplified
+      | 
+      <a href="http://github.com/matthewcieplak/muxcloud" title="View this project on Github" target="_blank"><span class="icon-github"></span></a>
+    </p>
     
-    <nav class="clear">
-      <h2><a href="/stream" class="selected">Stream</a></h2>
-      <h2><a href="/likes">Likes</a></h2>
-      <h2><a href="/me">Me</a></h2>
+    <nav class="clear" id="menu">
     </nav>
 
     <br class="clear" />
@@ -47,17 +48,20 @@
 
 <div id="connect" class="clear"></div>
 
-<div id="stream" class="clear" style="display: none;">
+<div id="stream" class="clear" style="display: none;"></div>
+<div id="loading" class="loading" style="display: none;">
+  <div class="bounce1"></div>
+  <div class="bounce2"></div>
+  <div class="bounce3"></div>
 </div>
 </div>
 
 <script type="text/jsx">
   App = {};
+  App.menu = React.render(<MenuComponent />, document.getElementById('menu'));
   App.connect = React.render(<ConnectComponent />, document.getElementById('connect'));
-  if (SC.accessToken()) {
-    App.connect.loadStream();
-  }
 </script>
+
 </body>
 </html>
 

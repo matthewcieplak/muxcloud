@@ -1,10 +1,10 @@
 var sc_config;
-if (window. location.hostname == 'muxcloud.matthewcieplak.com') { //production
+if (window.location.hostname == 'muxcloud.matthewcieplak.com') { //production
   sc_config = {
     client_id : 'bbf0fa468c641edba19d061ba901d60b',
     redirect_uri:  'http://muxcloud.matthewcieplak.com/callback.html'
   }
-} else {
+} else { //development
   sc_config = {
     client_id : '504016c0974cb1ea877d69bf52256027',
     redirect_uri : 'http://muxcloud.com/~matthew/muxcloud/callback.html'
@@ -36,22 +36,129 @@ var ConnectComponent = React.createClass({
     SC.connect(this.getToken);
   },
 
+  disconnect : function(){
+    this.render();
+  },
+
   getToken : function(){
     localStorage.setItem('sc_oauth_token', SC.accessToken());
-    this.loadStream();
+    this.componentDidMount()
+  },
+
+  getUser : function(){
+    SC.get('/me', this.gotUser);
+  },
+
+  gotUser : function(json){
+    if (json.kind == 'user') {
+      localStorage.setItem('sc_user_id', json.id);
+    }
+  },
+
+  componentDidMount : function(){
+    if (SC.accessToken()) {
+      $('#connect').hide();
+      App.menu.loadStream();
+    } 
+    if (!localStorage.getItem('sc_user_id')) {
+      this.getUser();
+    }
+  }
+});
+
+var MenuComponent = React.createClass({
+  getInitialState : function(){
+    return { 
+      selectedTab    : 'Stream',
+      configVisible  : false,
+      hideReposts    : localStorage.getItem('hideReposts') == 'true',
+      hideMixes      : localStorage.getItem('hideMixes') == 'true',
+      hideRemixes    : localStorage.getItem('hideRemixes') == 'true',
+      showReload     : false
+    };
+  },
+
+  render : function(){
+    return <div>
+    <h2><a onClick={this.itemClick} href="/stream" className={this.state.selectedTab == 'Stream' ? 'selected' : false}>Stream</a></h2>
+    <h2><a onClick={this.itemClick} href="/likes" className={this.state.selectedTab == 'Likes' ? 'selected' : false}>Likes</a></h2>
+    <h2><a onClick={this.itemClick} href="/me" className={this.state.selectedTab == 'Me' ? 'selected' : false}>Me</a></h2>
+    <h2 id="toggleConfig"><a href="#" onClick={this.toggleConfig}><span className="icon-cogs"></span></a></h2>
+
+    <div id="config" className={this.state.configVisible ? '' : 'hidden'}>
+      <h3>Options</h3>
+      <ul className="clear opts">
+        <li data-name="hideReposts" onClick={this.updateConfig}><span className={this.state.hideReposts ? 'icon-checkbox-checked' : 'icon-checkbox-unchecked'}></span> Hide reposts</li>
+        <li data-name="hideRemixes" onClick={this.updateConfig}><span className={this.state.hideRemixes ? 'icon-checkbox-checked' : 'icon-checkbox-unchecked'}></span> Hide remixes</li>
+        <li data-name="hideMixes"   onClick={this.updateConfig}><span className={this.state.hideMixes   ? 'icon-checkbox-checked' : 'icon-checkbox-unchecked'}></span> Hide uploads &gt; 20min</li>
+      </ul>
+      <p><a href="#" id="disconnect_button" onClick={this.disconnect}><img src="img/btn-disconnect-l.png" /></a> </p>
+      <p className={this.state.showReload ? '' : 'hidden'}><a href="#" className="saveButton" onClick={this.loadStream}>Save</a></p>
+    </div>
+    </div>
+  },
+
+  updateConfig : function(event){
+    var opt = { showReload : true };
+    var name = $(event.currentTarget).data('name')
+    opt[name] = !this.state[name];
+    this.setState(opt, this.render);
+    localStorage.setItem(name, opt[name]);
+  },
+
+  toggleConfig : function(event){
+    this.setState({ configVisible : !this.state.configVisible })
+    this.render();
+  },
+  
+  itemClick: function(e){
+    if (e && e.target) {
+      this.setState({selectedTab : e.target.innerText}, this.loadStream);
+    }
+
+    return false;
   },
 
   loadStream : function(){
-    $('#connect').hide();
-    $('#stream').show();
-    SC.get('/me/activities?limit=50', this.renderStream);
+    this.setState({ configVisible : false }, this.saveConfig)
+    //$('#connect').hide();
+    $('#stream').hide();
+    $('#loading').show();
+
+    if (this.state.selectedTab == 'Stream') {
+      var url = this.state.hideReposts ? '/me/activities/tracks/affiliated' : '/me/activities';
+      SC.get(url+'?limit=50', this.renderStream);
+    } else if (this.state.selectedTab == 'Likes') {
+      SC.get('/users/'+localStorage.getItem('sc_user_id')+'/favorites?limit=50', this.renderStream);
+    } else if (this.state.selectedTab == 'Me') {
+      SC.get('/users/'+localStorage.getItem('sc_user_id')+'/tracks?limit=50', this.renderStream);
+    }
+    return false;
+  },
+
+  disconnect : function(){
+    localStorage.removeItem('sc_oauth_token');
+    localStorage.removeItem('sc_user_id');
+    SC.access_token = null;
+    $('#stream').hide();
+    $('#connect').show();
   },
 
   renderStream : function(json){
-    var stream = <StreamComponent json={json}/>
-    React.render(stream, document.getElementById('stream'));
+    $('#loading').hide();
+    $('#stream').show();
+    if (App.stream) {
+      React.unmountComponentAtNode(document.getElementById('stream'));
+    }
+    App.stream = <StreamComponent json={json}/>
+    React.render(App.stream, document.getElementById('stream'));
+  },
+
+  componentDidMount : function(){
+    this.render();
   }
-});
+    
+})
 
 
 
@@ -88,24 +195,43 @@ var StreamComponent = React.createClass({
         }
       }, this)}
       <div>
-        <a href="#" onClick={this.loadMore}>Load More</a>
+        <a href="#" onClick={this.loadMore} className={this.state.loading ? 'hidden' : 'loadMore'}>Load More</a>
       </div>
     </div>
   },
 
   filterTracks : function(json) {
+    var trax = json.collection ? json.collection : json;
+
     var tracks = [];
-    for (var i =0; i<json.collection.length; i++){
-      if (json.collection[i].type ==  'track') {
-        tracks.push(json.collection[i].origin);
+    var minutes_max = 20;
+    for (var i =0; i<trax.length; i++){
+      //accept different list formats for stream/likes/etc 
+      var track = null;
+      track = trax[i].origin ? trax[i].origin : trax[i];
+      if (!track || !track.user) { continue; }
+      if (App.menu.state.hideReposts && json.collection && trax[i].type !=  'track') { continue; }
+      //if (!App.menu.state.hideReposts && json.collection && !(trax[i].type == 'track' || trax[i].type == 'track-repost')) { continue; }
+      if (App.menu.state.hideMixes   && track.duration > minutes_max * 1000 * 60) { continue; }
+      if (App.menu.state.hideRemixes && track.title.match(/remix/)) { continue; }
+
+      
+      if (trax[i].type == 'track-repost') {
+        track.repost = true;
+        track.reposted_by = json.collection[i].user;
       }
+
+      tracks.push(track);
     }
+
     return tracks;
   },
 
   componentDidMount : function(){
     var img = $('#stream img:first')[0];
-    this.renderGradient({target : img})
+    if (img) {
+      this.renderGradient({target : img})
+    }
     this.bindScroll();
   },
 
@@ -193,6 +319,7 @@ var StreamComponent = React.createClass({
   },
 
   loadMore : function(event){
+    $('#loading').show();
     this.setState({ loading : true });
     SC.get(this.state.next_href, this.loadTracks);
     return false;
@@ -231,7 +358,6 @@ var TrackComponent = React.createClass({
       width: (this.state.position * 100 / this.props.duration) + '%'
     }
 
-    
     return <div className={this.props.className + ' ' + (this.state.playing ? 'playing' : '')} data-track-id={this.props.id}>
       <div className="cover">
         <span className="icon-zoom"></span>
@@ -243,10 +369,13 @@ var TrackComponent = React.createClass({
       </div>
 
       <div className="title">
+        <span className={this.props.repost ? 'icon-loop' : ''}></span>
+
         <a href={this.props.permalink_url} target="_blank" className="name">
           {this.props.title}
           <span className="external">&rarr;</span>
         </a>
+
       </div>
       <div className="artist">
         <span className="icon-avatar"></span>
